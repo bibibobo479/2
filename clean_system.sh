@@ -1,18 +1,17 @@
 #!/bin/bash
 
 # ============================================
-# Скрипт полной очистки графической подсистемы
-# ВНИМАНИЕ! Скрипт удаляет ВСЕ графические окружения
+# System Cleanup Script - Remove ALL GUI
+# WARNING! This will remove ALL graphical environments
 # ============================================
 
-# Цвета для вывода
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Функция для вывода сообщений
 print_msg() {
     echo -e "${GREEN}[+]${NC} $1"
 }
@@ -29,95 +28,90 @@ print_info() {
     echo -e "${BLUE}[i]${NC} $1"
 }
 
-# Проверка прав
+# Check if running as root
 if [[ $EUID -eq 0 ]]; then
-    print_error "Не запускайте скрипт от root!"
+    print_error "Do NOT run this script as root!"
     exit 1
 fi
 
-# Подтверждение
+# First confirmation
 echo ""
 print_warning "=========================================="
-print_warning "ЭТОТ СКРИПТ УДАЛИТ ВСЁ ГРАФИЧЕСКОЕ ОКРУЖЕНИЕ!"
-print_warning "Вы останетесь только в консоли (tty)"
+print_warning "THIS SCRIPT WILL REMOVE ALL GUI!"
+print_warning "You will be left with only console (tty)"
 print_warning "=========================================="
 echo ""
-read -p "Вы уверены, что хотите продолжить? (yes/no): " confirm
+read -p "Are you sure you want to continue? (yes/no): " confirm
 
 if [[ "$confirm" != "yes" ]]; then
-    print_msg "Отмена операции"
+    print_msg "Operation cancelled"
     exit 0
 fi
 
+# Second confirmation with CAPITAL
 echo ""
-read -p "Введите ДА (прописными буквами) для подтверждения: " final_confirm
+read -p "Type YES (all caps) to confirm: " final_confirm
 
-if [[ "$final_confirm" != "ДА" ]]; then
-    print_msg "Отмена операции"
+if [[ "$final_confirm" != "YES" ]]; then
+    print_msg "Operation cancelled"
     exit 0
 fi
 
-# Создание бэкапа важных файлов
-print_msg "Создание бэкапа в ~/backup_$(date +%Y%m%d_%H%M%S)"
+# Create backup
+print_msg "Creating backup in ~/backup_$(date +%Y%m%d_%H%M%S)"
 mkdir -p ~/backup_$(date +%Y%m%d_%H%M%S)
 cp -r ~/.bashrc ~/backup_$(date +%Y%m%d_%H%M%S)/ 2>/dev/null
 cp -r ~/.zshrc ~/backup_$(date +%Y%m%d_%H%M%S)/ 2>/dev/null
 cp -r ~/.config ~/backup_$(date +%Y%m%d_%H%M%S)/ 2>/dev/null
 
 # ============================================
-# 1. Удаление Celestia (программа-симулятор)
+# 1. Remove Celestia
 # ============================================
-print_msg "Удаление Celestia..."
+print_msg "Removing Celestia..."
 
-# Через pacman
 sudo pacman -Rns --noconfirm celestia 2>/dev/null
-# Через AUR
 yay -Rns --noconfirm celestia-bin celestia-git 2>/dev/null
 paru -Rns --noconfirm celestia-bin celestia-git 2>/dev/null
-
-# AppImage
 rm -f ~/celestia.AppImage 2>/dev/null
 rm -rf ~/Celestia 2>/dev/null
-
-# Конфиги
 rm -rf ~/.celestia 2>/dev/null
 rm -rf ~/.config/celestia 2>/dev/null
 
-print_msg "Celestia удален"
+print_msg "Celestia removed"
 
 # ============================================
-# 2. Удаление Hyprland и связанных пакетов
+# 2. Remove Hyprland and all WMs
 # ============================================
-print_msg "Удаление Hyprland и оконных менеджеров..."
+print_msg "Removing Hyprland and Window Managers..."
 
-# Hyprland и компоненты
+# Hyprland components
 sudo pacman -Rns --noconfirm hyprland hyprpaper hyprlock hypridle hyprcursor \
   hyprutils hyprlang hyprwayland-scanner 2>/dev/null
 
-# Панели и лаунчеры
+# Panels and launchers
 sudo pacman -Rns --noconfirm waybar wofi rofi polybar \
   eww nwg-dock nwg-panel 2>/dev/null
 
-# Уведомления
+# Notifications
 sudo pacman -Rns --noconfirm dunst mako 2>/dev/null
 
-# Скриншоты и утилиты
+# Screenshot tools
 sudo pacman -Rns --noconfirm grim slurp swappy wl-clipboard \
   wlogout swww 2>/dev/null
 
-# Терминалы
+# Terminals
 sudo pacman -Rns --noconfirm foot alacritty kitty wezterm \
   st termite 2>/dev/null
 
-# Портал Wayland
+# Wayland portal
 sudo pacman -Rns --noconfirm xdg-desktop-portal-hyprland \
   xdg-desktop-portal-gtk 2>/dev/null
 
-# Qt и GTK Wayland
+# Qt GTK Wayland
 sudo pacman -Rns --noconfirm qt5-wayland qt6-wayland \
   qt5ct qt6ct 2>/dev/null
 
-# Другие оконные менеджеры
+# Other Window Managers
 sudo pacman -Rns --noconfirm i3-wm i3status i3lock \
   sway swaylock swayidle swaybg \
   bspwm sxhkd \
@@ -128,12 +122,12 @@ sudo pacman -Rns --noconfirm i3-wm i3status i3lock \
   plasma-desktop plasma-meta \
   cinnamon 2>/dev/null
 
-print_msg "Оконные менеджеры удалены"
+print_msg "Window Managers removed"
 
 # ============================================
-# 3. Удаление AUR пакетов
+# 3. Remove AUR packages
 # ============================================
-print_msg "Удаление пакетов из AUR..."
+print_msg "Removing AUR packages..."
 
 # HyDE
 yay -Rns --noconfirm hyde-git hyde-cli hyde-theme-git 2>/dev/null
@@ -145,49 +139,40 @@ yay -Rns --noconfirm caelestia-meta caelestia-shell-git \
 paru -Rns --noconfirm caelestia-meta caelestia-shell-git \
   caelestia-cli-git quickshell-git 2>/dev/null
 
-# Другое
+# Other
 yay -Rns --noconfirm nwg-look waybar-hyprland-git wlogout-git \
   swww-git pywal-git wal-steam-git 2>/dev/null
 paru -Rns --noconfirm nwg-look waybar-hyprland-git 2>/dev/null
 
-print_msg "AUR пакеты удалены"
+print_msg "AUR packages removed"
 
 # ============================================
-# 4. Удаление менеджеров входа
+# 4. Remove Display Managers
 # ============================================
-print_msg "Удаление менеджеров входа..."
+print_msg "Removing Display Managers..."
 
-# SDDM
 sudo pacman -Rns --noconfirm sddm sddm-kcm 2>/dev/null
 sudo systemctl disable sddm 2>/dev/null
-
-# GDM
 sudo pacman -Rns --noconfirm gdm 2>/dev/null
 sudo systemctl disable gdm 2>/dev/null
-
-# LightDM
 sudo pacman -Rns --noconfirm lightdm lightdm-gtk-greeter 2>/dev/null
 sudo systemctl disable lightdm 2>/dev/null
-
-# LXDM
 sudo pacman -Rns --noconfirm lxdm 2>/dev/null
 sudo systemctl disable lxdm 2>/dev/null
 
-print_msg "Менеджеры входа удалены"
+print_msg "Display Managers removed"
 
 # ============================================
-# 5. Удаление конфигурационных файлов
+# 5. Remove all config files
 # ============================================
-print_msg "Удаление конфигурационных файлов..."
+print_msg "Removing configuration files..."
 
-# Удаление папок
 rm -rf ~/.config/* 2>/dev/null
 rm -rf ~/.cache/* 2>/dev/null
 rm -rf ~/.local/share/* 2>/dev/null
 rm -rf ~/.local/bin/* 2>/dev/null
 rm -rf ~/.local/lib/* 2>/dev/null
 
-# Удаление скрытых файлов
 rm -f ~/.bashrc 2>/dev/null
 rm -f ~/.zshrc 2>/dev/null
 rm -f ~/.profile 2>/dev/null
@@ -199,24 +184,19 @@ rm -f ~/.gtkrc-* 2>/dev/null
 rm -f ~/.face 2>/dev/null
 rm -f ~/.wallpaper 2>/dev/null
 rm -f ~/.fehbg 2>/dev/null
-rm -f ~/.xsession 2>/dev/null
 
-# Удаление точек
 rm -rf ~/.hyprland 2>/dev/null
 rm -rf ~/.hyde 2>/dev/null
 rm -rf ~/.caelestia 2>/dev/null
 rm -rf ~/.gnome 2>/dev/null
 rm -rf ~/.kde 2>/dev/null
-rm -rf ~/.local 2>/dev/null
-rm -rf ~/.mozilla 2>/dev/null
-rm -rf ~/.thunderbird 2>/dev/null
 
-print_msg "Конфигурации удалены"
+print_msg "Configuration files removed"
 
 # ============================================
-# 6. Удаление системных тем и иконок
+# 6. Remove system themes and icons
 # ============================================
-print_msg "Удаление тем и иконок..."
+print_msg "Removing themes and icons..."
 
 sudo rm -rf /usr/share/themes/* 2>/dev/null
 sudo rm -rf /usr/share/icons/* 2>/dev/null
@@ -225,27 +205,24 @@ sudo rm -rf /usr/share/gnome-shell/theme/* 2>/dev/null
 sudo rm -rf /usr/local/share/themes/* 2>/dev/null
 sudo rm -rf /usr/local/share/icons/* 2>/dev/null
 
-print_msg "Темы и иконки удалены"
+print_msg "Themes and icons removed"
 
 # ============================================
-# 7. Очистка пакетного менеджера
+# 7. Clean package manager
 # ============================================
-print_msg "Очистка пакетного менеджера..."
+print_msg "Cleaning package manager..."
 
-# Удаление ненужных зависимостей
 sudo pacman -Rns --noconfirm $(pacman -Qdtq) 2>/dev/null
-
-# Очистка кэша
 sudo pacman -Scc --noconfirm 2>/dev/null
 yay -Scc --noconfirm 2>/dev/null
 paru -Scc --noconfirm 2>/dev/null
 
-print_msg "Пакетный менеджер очищен"
+print_msg "Package manager cleaned"
 
 # ============================================
-# 8. Установка базовых консольных утилит
+# 8. Install basic console utilities
 # ============================================
-print_msg "Установка базовых консольных утилит..."
+print_msg "Installing basic console utilities..."
 
 sudo pacman -S --noconfirm --needed base base-devel \
   linux linux-firmware \
@@ -255,14 +232,13 @@ sudo pacman -S --noconfirm --needed base base-devel \
   openssh git curl wget \
   htop neofetch 2>/dev/null
 
-print_msg "Базовые утилиты установлены"
+print_msg "Basic utilities installed"
 
 # ============================================
-# 9. Создание чистых конфигов
+# 9. Create clean configs
 # ============================================
-print_msg "Создание чистых конфигурационных файлов..."
+print_msg "Creating clean configuration files..."
 
-# .bashrc
 cat > ~/.bashrc << 'EOF'
 # ~/.bashrc
 alias ls='ls --color=auto'
@@ -276,18 +252,15 @@ PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 
 export EDITOR=nano
 
-# History
 HISTSIZE=10000
 HISTFILESIZE=20000
 HISTCONTROL=ignoreboth
 
-# Colorize grep
 alias grep='grep --color=auto'
 alias egrep='egrep --color=auto'
 alias fgrep='fgrep --color=auto'
 EOF
 
-# .profile
 cat > ~/.profile << 'EOF'
 # ~/.profile
 if [ -n "$BASH_VERSION" ]; then
@@ -297,54 +270,50 @@ if [ -n "$BASH_VERSION" ]; then
 fi
 EOF
 
-# .bash_logout
 cat > ~/.bash_logout << 'EOF'
 # ~/.bash_logout
 clear
 EOF
 
-print_msg "Конфиги созданы"
+print_msg "Configs created"
 
 # ============================================
-# 10. Включение сети
+# 10. Setup network
 # ============================================
-print_msg "Настройка сети..."
+print_msg "Setting up network..."
 
 sudo systemctl enable NetworkManager
 sudo systemctl start NetworkManager
 
-print_msg "Сеть настроена"
+print_msg "Network configured"
 
 # ============================================
-# 11. Финальная очистка
+# 11. Final cleanup
 # ============================================
-print_msg "Финальная очистка..."
+print_msg "Final cleanup..."
 
-# Очистка мусора
 rm -rf ~/.cache/* 2>/dev/null
 rm -rf ~/.local/share/Trash/* 2>/dev/null
 rm -rf /tmp/* 2>/dev/null
-
-# Синхронизация
 sync
 
-print_msg "Очистка завершена"
+print_msg "Cleanup finished"
 
 # ============================================
-# Завершение
+# Done
 # ============================================
 echo ""
 print_warning "=========================================="
-print_warning "СКРИПТ ЗАВЕРШИЛ РАБОТУ!"
+print_warning "SCRIPT FINISHED!"
 print_warning "=========================================="
-print_info "Бэкап сохранен в: ~/backup_$(ls -t ~/ | grep backup_ | head -1)"
-print_info "После перезагрузки вы окажетесь в консоли (tty)"
+print_info "Backup saved in: ~/backup_$(ls -t ~/ 2>/dev/null | grep backup_ | head -1)"
+print_info "After reboot you will be in console (tty)"
 echo ""
-read -p "Перезагрузить систему сейчас? (yes/no): " reboot_confirm
+read -p "Reboot now? (yes/no): " reboot_confirm
 
 if [[ "$reboot_confirm" == "yes" ]]; then
-    print_msg "Перезагрузка..."
+    print_msg "Rebooting..."
     sudo reboot
 else
-    print_msg "Перезагрузка отменена. Выполните 'sudo reboot' позже"
+    print_msg "Reboot cancelled. Run 'sudo reboot' later"
 fi
