@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # ============================================
-# AGGRESSIVE SYSTEM CLEANUP
-# Removes ALL packages related to graphics
+# COMPLETE CONFIGURATION REMOVAL SCRIPT
+# Removes ALL configs: Hyprland, Caelestia, HyDE, Celestia, etc.
 # ============================================
 
 RED='\033[0;31m'
@@ -15,288 +15,310 @@ print_msg() { echo -e "${GREEN}[+]${NC} $1"; }
 print_error() { echo -e "${RED}[!]${NC} $1"; }
 print_warning() { echo -e "${YELLOW}[*]${NC} $1"; }
 
-# Check root
-if [[ $EUID -eq 0 ]]; then
-    print_error "Do NOT run as root!"
-    exit 1
-fi
+echo ""
+print_warning "=========================================="
+print_warning "COMPLETE CONFIGURATION REMOVAL"
+print_warning "This will delete ALL config files for:"
+print_warning "  - Hyprland"
+print_warning "  - Caelestia Dots & Shell"
+print_warning "  - HyDE"
+print_warning "  - Celestia"
+print_warning "  - Waybar, Rofi, Dunst, Foot, Kitty"
+print_warning "  - GTK, QT, Kvantum"
+print_warning "  - And more..."
+print_warning "=========================================="
+echo ""
+read -p "Type YES to continue: " confirm
 
-echo ""
-print_warning "=========================================="
-print_warning "AGGRESSIVE CLEANUP - REMOVES EVERYTHING!"
-print_warning "This will remove ALL GUI packages!"
-print_warning "=========================================="
-echo ""
-read -p "Type YES (all caps) to continue: " confirm
 if [[ "$confirm" != "YES" ]]; then
     print_msg "Cancelled"
     exit 0
 fi
 
 # ============================================
-# 1. Remove ALL AUR packages
+# 1. DELETE ALL CONFIG DIRECTORIES
 # ============================================
-print_msg "Removing ALL AUR packages..."
+print_msg "Deleting all config directories..."
 
-# List all installed AUR packages and remove them
-yay -Qqm 2>/dev/null | while read pkg; do
-    print_msg "Removing AUR: $pkg"
-    yay -Rns --noconfirm "$pkg" 2>/dev/null
-    paru -Rns --noconfirm "$pkg" 2>/dev/null
-done
-
-# Force remove specific packages
-yay -Rns --noconfirm --nocheck \
-    hyde-git hyde-cli hyde-theme-git \
-    caelestia-meta caelestia-shell-git caelestia-cli-git \
-    quickshell-git quickshell \
-    waybar-hyprland-git wlogout-git swww-git \
-    pywal-git wal-git nwg-look nwg-dock nwg-panel \
-    celestia-bin celestia-git celestia \
-    2>/dev/null
-
-paru -Rns --noconfirm --nocheck \
-    hyde-git caelestia-meta caelestia-shell-git \
-    quickshell-git 2>/dev/null
-
-# Remove yay and paru themselves (optional)
-# yay -Rns --noconfirm yay 2>/dev/null
-# paru -Rns --noconfirm paru 2>/dev/null
-
-print_msg "AUR packages removed"
-
-# ============================================
-# 2. Remove ALL official graphics packages
-# ============================================
-print_msg "Removing ALL official graphics packages..."
-
-# Get all packages related to graphics and remove them
-PACKAGES_TO_REMOVE=(
-    # Hyprland ecosystem
-    hyprland hyprland-git hyprpaper hyprlock hypridle hyprcursor
-    hyprutils hyprlang hyprwayland-scanner hyprpicker
-    # Wayland stuff
-    wayland wayland-protocols wayland-utils
-    # WMs and compositors
-    sway swaylock swayidle swaybg sway-contrib
-    i3-wm i3status i3lock i3-gaps
-    bspwm sxhkd
-    awesome
-    openbox obconf
-    dwm dmenu st
-    qtile
-    # Xorg
-    xorg-server xorg-xinit xorg-apps xorg-xrandr xorg-xsetroot
-    xorg-xbacklight xf86-input-libinput xf86-video-*
-    # Panels
-    waybar polybar eww lemonbar tint2
-    wofi rofi rofi-lbonn-wayland rofi-calc
+CONFIG_DIRS=(
+    # Hyprland & Caelestia
+    "hypr"
+    "hyde"
+    "caelestia"
+    "quickshell"
+    
+    # Panels & Launchers
+    "waybar"
+    "rofi"
+    "polybar"
+    "eww"
+    "nwg-dock"
+    "nwg-panel"
+    "wofi"
+    
     # Notifications
-    dunst mako notification-daemon
+    "dunst"
+    "mako"
+    
     # Terminals
-    foot alacritty kitty wezterm termite st
-    # Screenshots
-    grim slurp swappy wl-clipboard wlroots
-    # Screen management
-    wlogout swww mpvpaper
-    # Portals
-    xdg-desktop-portal xdg-desktop-portal-gtk xdg-desktop-portal-hyprland
-    xdg-desktop-portal-wlr
-    # QT and GTK
-    qt5-wayland qt6-wayland qt5ct qt6ct
+    "foot"
+    "alacritty"
+    "kitty"
+    "wezterm"
+    "termite"
+    "st"
+    
+    # GTK & QT
+    "gtk-3.0"
+    "gtk-4.0"
+    "Kvantum"
+    "qt5ct"
+    "qt6ct"
+    
+    # Themes & Colors
+    "wal"
+    "wpg"
+    "pywal"
+    
+    # Other WMs (if any)
+    "i3"
+    "i3status"
+    "sway"
+    "bspwm"
+    "sxhkd"
+    "awesome"
+    "openbox"
+    "xfce4"
+    
     # File managers
-    thunar pcmanfm nemo dolphin ranger vifm
-    # Browsers
-    firefox chromium brave google-chrome
-    # Media
-    mpv vlc
-    # Themes
-    adw-gtk-theme papirus-icon-theme
-    # Display managers
-    sddm sddm-kcm gdm lightdm lxdm greetd
-    # Python stuff
-    python-pywal python-wal
-    # Celestia
-    celestia celestia-data
+    "thunar"
+    "pcmanfm"
+    "nemo"
+    "ranger"
+    
+    # Other apps
+    "fish"
+    "starship"
+    "fastfetch"
+    "btop"
+    "neofetch"
+    "mpv"
+    "nvim"
+    "vim"
 )
 
-for pkg in "${PACKAGES_TO_REMOVE[@]}"; do
-    print_msg "Removing: $pkg"
-    sudo pacman -Rns --noconfirm "$pkg" 2>/dev/null
+for dir in "${CONFIG_DIRS[@]}"; do
+    if [[ -d "$HOME/.config/$dir" ]]; then
+        print_msg "Removing: ~/.config/$dir"
+        rm -rf "$HOME/.config/$dir"
+    fi
 done
 
-# Remove all orphaned packages
-print_msg "Removing orphaned packages..."
-sudo pacman -Rns --noconfirm $(pacman -Qdtq) 2>/dev/null
-
-print_msg "Official packages removed"
+# Remove all remaining files in .config (just in case)
+print_msg "Cleaning any remaining files in ~/.config..."
+rm -rf "$HOME/.config"/* 2>/dev/null
 
 # ============================================
-# 3. Kill all user processes
+# 2. DELETE CACHE DIRECTORIES
 # ============================================
-print_msg "Killing all user processes..."
+print_msg "Deleting cache directories..."
 
-# Kill all graphical sessions
-pkill -9 -t tty* 2>/dev/null
-pkill -9 Xorg 2>/dev/null
-pkill -9 Hyprland 2>/dev/null
-pkill -9 sway 2>/dev/null
-pkill -9 waybar 2>/dev/null
+CACHE_DIRS=(
+    "hyprland"
+    "hypr"
+    "hyde"
+    "caelestia"
+    "quickshell"
+    "waybar"
+    "rofi"
+    "dunst"
+    "wal"
+    "pywal"
+    "mesa_shader_cache"
+)
 
-# Kill all user processes (except current terminal)
-kill -9 -1 2>/dev/null
+for dir in "${CACHE_DIRS[@]}"; do
+    if [[ -d "$HOME/.cache/$dir" ]]; then
+        print_msg "Removing: ~/.cache/$dir"
+        rm -rf "$HOME/.cache/$dir"
+    fi
+done
 
-print_msg "Processes killed"
-
-# ============================================
-# 4. Remove ALL config files and directories
-# ============================================
-print_msg "Removing ALL configuration files..."
-
-# Remove all .config directories
-rm -rf ~/.config/* 2>/dev/null
-
-# Remove all cache
-rm -rf ~/.cache/* 2>/dev/null
-
-# Remove local data
-rm -rf ~/.local/share/* 2>/dev/null
-rm -rf ~/.local/bin/* 2>/dev/null
-rm -rf ~/.local/lib/* 2>/dev/null
-rm -rf ~/.local/state/* 2>/dev/null
-
-# Remove all dotfiles
-rm -rf ~/.bashrc ~/.bash_profile ~/.profile ~/.zshrc ~/.zprofile 2>/dev/null
-rm -rf ~/.xinitrc ~/.xprofile ~/.Xresources ~/.xsession 2>/dev/null
-rm -rf ~/.gtkrc* ~/.face ~/.wallpaper ~/.fehbg 2>/dev/null
-
-# Remove all dot directories
-rm -rf ~/.hyprland ~/.hyde ~/.caelestia 2>/dev/null
-rm -rf ~/.gnome ~/.gnome2 ~/.gconf ~/.gconfd 2>/dev/null
-rm -rf ~/.kde ~/.kde4 ~/.config/kde* 2>/dev/null
-rm -rf ~/.mozilla ~/.mozilla2 2>/dev/null
-rm -rf ~/.thunderbird 2>/dev/null
-rm -rf ~/.steam ~/.local/share/Steam 2>/dev/null
-rm -rf ~/.npm ~/.node-gyp 2>/dev/null
-rm -rf ~/.cargo ~/.rustup 2>/dev/null
-rm -rf ~/.gradle ~/.m2 2>/dev/null
-rm -rf ~/.cabal ~/.ghc 2>/dev/null
-rm -rf ~/.vim ~/.vimrc ~/.nvim ~/.config/nvim 2>/dev/null
-
-# Remove fonts
-rm -rf ~/.fonts ~/.local/share/fonts 2>/dev/null
-
-# Remove themes
-rm -rf ~/.themes ~/.icons ~/.local/share/themes ~/.local/share/icons 2>/dev/null
-
-# Remove wallpapers
-rm -rf ~/Pictures/Wallpapers ~/Pictures/wallpapers 2>/dev/null
-rm -rf ~/Wallpapers 2>/dev/null
-
-# Remove Caelestia specific
-rm -rf ~/.local/share/caelestia 2>/dev/null
-rm -rf ~/.config/caelestia 2>/dev/null
-rm -rf ~/.config/quickshell 2>/dev/null
-rm -rf ~/.cache/caelestia 2>/dev/null
-
-# Remove Celestia
-rm -rf ~/.celestia ~/.config/celestia 2>/dev/null
-rm -f ~/.local/bin/celestia.AppImage 2>/dev/null
-rm -f ~/celestia.AppImage 2>/dev/null
-rm -rf ~/Celestia 2>/dev/null
-
-# Remove any remaining dotfiles
-find ~ -maxdepth 1 -type d -name ".*" -not -name "." -not -name ".." -not -name ".local" -not -name ".cache" -not -name ".config" -exec rm -rf {} + 2>/dev/null
-
-print_msg "Config files removed"
+# Remove all remaining cache
+rm -rf "$HOME/.cache"/* 2>/dev/null
 
 # ============================================
-# 5. Remove system-level files
+# 3. DELETE LOCAL DATA DIRECTORIES
 # ============================================
-print_msg "Removing system-level files..."
+print_msg "Deleting local data directories..."
 
-# Remove system themes
-sudo rm -rf /usr/share/themes/* 2>/dev/null
-sudo rm -rf /usr/share/icons/* 2>/dev/null
-sudo rm -rf /usr/local/share/themes/* 2>/dev/null
-sudo rm -rf /usr/local/share/icons/* 2>/dev/null
+LOCAL_DIRS=(
+    "hyde"
+    "caelestia"
+    "quickshell"
+    "hyprland"
+    "wal"
+    "fonts"
+    "themes"
+    "icons"
+)
+
+for dir in "${LOCAL_DIRS[@]}"; do
+    if [[ -d "$HOME/.local/share/$dir" ]]; then
+        print_msg "Removing: ~/.local/share/$dir"
+        rm -rf "$HOME/.local/share/$dir"
+    fi
+done
+
+# Remove all remaining local share
+rm -rf "$HOME/.local/share"/* 2>/dev/null
+
+# Remove local bin
+rm -rf "$HOME/.local/bin"/* 2>/dev/null
+rm -rf "$HOME/.local/lib"/* 2>/dev/null
+rm -rf "$HOME/.local/state"/* 2>/dev/null
+
+# ============================================
+# 4. DELETE DOTFILES IN HOME DIRECTORY
+# ============================================
+print_msg "Deleting dotfiles in home directory..."
+
+DOTFILES=(
+    ".bashrc"
+    ".bash_profile"
+    ".profile"
+    ".zshrc"
+    ".zprofile"
+    ".xinitrc"
+    ".xprofile"
+    ".Xresources"
+    ".xsession"
+    ".gtkrc-2.0"
+    ".gtkrc-3.0"
+    ".face"
+    ".wallpaper"
+    ".fehbg"
+    ".gitconfig"
+    ".gitignore"
+    ".npmrc"
+    ".wgetrc"
+    ".tmux.conf"
+    ".vimrc"
+    ".nanorc"
+)
+
+for file in "${DOTFILES[@]}"; do
+    if [[ -f "$HOME/$file" ]]; then
+        print_msg "Removing: ~/$file"
+        rm -f "$HOME/$file"
+    fi
+done
+
+# ============================================
+# 5. DELETE DOT DIRECTORIES IN HOME
+# ============================================
+print_msg "Deleting dot directories in home directory..."
+
+DOT_DIRS=(
+    ".hyprland"
+    ".hyde"
+    ".caelestia"
+    ".gnome"
+    ".gnome2"
+    ".gconf"
+    ".kde"
+    ".kde4"
+    ".mozilla"
+    ".thunderbird"
+    ".steam"
+    ".npm"
+    ".cargo"
+    ".rustup"
+    ".gradle"
+    ".m2"
+    ".cabal"
+    ".ghc"
+    ".vim"
+    ".nvim"
+    ".fonts"
+    ".themes"
+    ".icons"
+    ".wallpapers"
+)
+
+for dir in "${DOT_DIRS[@]}"; do
+    if [[ -d "$HOME/$dir" ]]; then
+        print_msg "Removing: ~/$dir"
+        rm -rf "$HOME/$dir"
+    fi
+fi
+
+# ============================================
+# 6. DELETE CELESTIA SPECIFIC FILES
+# ============================================
+print_msg "Deleting Celestia files..."
+
+# Celestia AppImage
+rm -f "$HOME/.local/bin/celestia.AppImage" 2>/dev/null
+rm -f "$HOME/celestia.AppImage" 2>/dev/null
+
+# Celestia source
+rm -rf "$HOME/Celestia" 2>/dev/null
+
+# Celestia configs
+rm -rf "$HOME/.celestia" 2>/dev/null
+rm -rf "$HOME/.config/celestia" 2>/dev/null
+
+# Celestia desktop entry
+rm -f "$HOME/.local/share/applications/celestia.desktop" 2>/dev/null
+rm -f "$HOME/.local/share/applications/caelestia"* 2>/dev/null
+
+# ============================================
+# 7. DELETE SYSTEM-LEVEL FILES (requires sudo)
+# ============================================
+print_msg "Deleting system-level files (requires sudo)..."
+
+# Remove user-installed themes
+if [[ -d "/usr/share/themes" ]]; then
+    sudo rm -rf /usr/share/themes/hyde* 2>/dev/null
+    sudo rm -rf /usr/share/themes/caelestia* 2>/dev/null
+fi
+
+# Remove user-installed icons
+if [[ -d "/usr/share/icons" ]]; then
+    sudo rm -rf /usr/share/icons/hyde* 2>/dev/null
+    sudo rm -rf /usr/share/icons/caelestia* 2>/dev/null
+fi
 
 # Remove SDDM themes
-sudo rm -rf /usr/share/sddm/themes/* 2>/dev/null
+if [[ -d "/usr/share/sddm/themes" ]]; then
+    sudo rm -rf /usr/share/sddm/themes/hyde* 2>/dev/null
+    sudo rm -rf /usr/share/sddm/themes/caelestia* 2>/dev/null
+fi
 
-# Remove GDM themes
-sudo rm -rf /usr/share/gnome-shell/theme/* 2>/dev/null
-
-# Remove desktop entries for installed packages
-sudo rm -rf /usr/share/applications/hyde* 2>/dev/null
-sudo rm -rf /usr/share/applications/caelestia* 2>/dev/null
-sudo rm -rf /usr/share/applications/celestia* 2>/dev/null
-
-# Remove user desktop entries
-rm -rf ~/.local/share/applications/hyde* 2>/dev/null
-rm -rf ~/.local/share/applications/caelestia* 2>/dev/null
-rm -rf ~/.local/share/applications/celestia* 2>/dev/null
-
-print_msg "System files removed"
+# Remove desktop entries
+sudo rm -f /usr/share/applications/hyde* 2>/dev/null
+sudo rm -f /usr/share/applications/caelestia* 2>/dev/null
+sudo rm -f /usr/share/applications/celestia* 2>/dev/null
 
 # ============================================
-# 6. Disable all display managers
+# 8. DELETE WALLPAPERS AND MEDIA
 # ============================================
-print_msg "Disabling display managers..."
+print_msg "Deleting wallpapers and media..."
 
-sudo systemctl disable sddm 2>/dev/null
-sudo systemctl disable gdm 2>/dev/null
-sudo systemctl disable lightdm 2>/dev/null
-sudo systemctl disable lxdm 2>/dev/null
-sudo systemctl disable greetd 2>/dev/null
-
-print_msg "Display managers disabled"
+rm -rf "$HOME/Pictures/Wallpapers" 2>/dev/null
+rm -rf "$HOME/Pictures/wallpapers" 2>/dev/null
+rm -rf "$HOME/Wallpapers" 2>/dev/null
+rm -rf "$HOME/.wallpapers" 2>/dev/null
 
 # ============================================
-# 7. Clean package manager cache
+# 9. CREATE MINIMAL CLEAN CONFIGS
 # ============================================
-print_msg "Cleaning package manager cache..."
+print_msg "Creating minimal clean configs..."
 
-sudo pacman -Scc --noconfirm
-yay -Scc --noconfirm 2>/dev/null
-paru -Scc --noconfirm 2>/dev/null
-
-# Clean pacman database
-sudo pacman -Syy
-
-print_msg "Cache cleaned"
-
-# ============================================
-# 8. Install ONLY console essentials
-# ============================================
-print_msg "Installing console essentials..."
-
-sudo pacman -S --noconfirm --needed \
-    base base-devel \
-    linux linux-firmware \
-    vim nano \
-    sudo \
-    networkmanager dhcpcd \
-    openssh \
-    git curl wget \
-    htop \
-    man-db man-pages \
-    tmux \
-    neofetch
-
-# Enable network
-sudo systemctl enable NetworkManager
-sudo systemctl start NetworkManager
-
-print_msg "Console essentials installed"
-
-# ============================================
-# 9. Create minimal console config
-# ============================================
-print_msg "Creating minimal console config..."
-
-cat > ~/.bashrc << 'EOF'
-# ~/.bashrc - Minimal config
+# Minimal .bashrc
+cat > "$HOME/.bashrc" << 'EOF'
+# ~/.bashrc - Minimal
 alias ls='ls --color=auto'
 alias ll='ls -la'
 alias la='ls -A'
@@ -307,7 +329,8 @@ PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 export EDITOR=nano
 EOF
 
-cat > ~/.profile << 'EOF'
+# Minimal .profile
+cat > "$HOME/.profile" << 'EOF'
 # ~/.profile
 if [ -n "$BASH_VERSION" ]; then
     if [ -f "$HOME/.bashrc" ]; then
@@ -316,38 +339,34 @@ if [ -n "$BASH_VERSION" ]; then
 fi
 EOF
 
-print_msg "Minimal config created"
+# Minimal .config directory (clean)
+mkdir -p "$HOME/.config"
+mkdir -p "$HOME/.local/bin"
+mkdir -p "$HOME/.local/share"
 
 # ============================================
-# 10. Final cleanup
-# ============================================
-print_msg "Final cleanup..."
-
-# Clear all logs
-sudo journalctl --rotate 2>/dev/null
-sudo journalctl --vacuum-time=1s 2>/dev/null
-
-# Clear temp
-rm -rf /tmp/* 2>/dev/null
-rm -rf ~/.cache/* 2>/dev/null
-
-# Sync
-sync
-
-print_msg "Final cleanup done"
-
-# ============================================
-# Done
+# 10. VERIFICATION
 # ============================================
 echo ""
 print_warning "=========================================="
-print_warning "CLEANUP COMPLETE!"
+print_warning "REMOVAL COMPLETE!"
 print_warning "=========================================="
-print_info "All GUI packages and configs have been removed"
-print_info "You are now in a minimal console environment"
+
+print_msg "Checking remaining configs..."
+
+# Check remaining in .config
+CONFIG_COUNT=$(find "$HOME/.config" -type f 2>/dev/null | wc -l)
+print_msg "Files remaining in ~/.config: $CONFIG_COUNT"
+
+# Check remaining dotfiles
+DOTFILE_COUNT=$(find "$HOME" -maxdepth 1 -name ".*" -type f 2>/dev/null | wc -l)
+print_msg "Dotfiles remaining in ~: $DOTFILE_COUNT"
+
 echo ""
-print_info "To check what's still installed:"
-print_info "  pacman -Q | grep -E 'hypr|wayland|xorg|sway|i3|gtk|qt'"
+print_info "If you still see files, run this command:"
+print_info "  find ~/.config -type f -name \"*hypr*\" -o -name \"*caelestia*\" -o -name \"*hyde*\""
+print_info "  find ~ -maxdepth 1 -name \".*\" | grep -E \"hypr|caelestia|hyde\""
+
 echo ""
 read -p "Reboot now? (yes/no): " reboot_confirm
 
