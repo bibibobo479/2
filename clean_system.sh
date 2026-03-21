@@ -14,6 +14,7 @@ NC='\033[0m'
 print_msg() { echo -e "${GREEN}[+]${NC} $1"; }
 print_error() { echo -e "${RED}[!]${NC} $1"; }
 print_warning() { echo -e "${YELLOW}[*]${NC} $1"; }
+print_info() { echo -e "${BLUE}[i]${NC} $1"; }
 
 echo ""
 print_warning "=========================================="
@@ -41,13 +42,10 @@ fi
 print_msg "Deleting all config directories..."
 
 CONFIG_DIRS=(
-    # Hyprland & Caelestia
     "hypr"
     "hyde"
     "caelestia"
     "quickshell"
-    
-    # Panels & Launchers
     "waybar"
     "rofi"
     "polybar"
@@ -55,32 +53,22 @@ CONFIG_DIRS=(
     "nwg-dock"
     "nwg-panel"
     "wofi"
-    
-    # Notifications
     "dunst"
     "mako"
-    
-    # Terminals
     "foot"
     "alacritty"
     "kitty"
     "wezterm"
     "termite"
     "st"
-    
-    # GTK & QT
     "gtk-3.0"
     "gtk-4.0"
     "Kvantum"
     "qt5ct"
     "qt6ct"
-    
-    # Themes & Colors
     "wal"
     "wpg"
     "pywal"
-    
-    # Other WMs (if any)
     "i3"
     "i3status"
     "sway"
@@ -89,14 +77,10 @@ CONFIG_DIRS=(
     "awesome"
     "openbox"
     "xfce4"
-    
-    # File managers
     "thunar"
     "pcmanfm"
     "nemo"
     "ranger"
-    
-    # Other apps
     "fish"
     "starship"
     "fastfetch"
@@ -114,7 +98,7 @@ for dir in "${CONFIG_DIRS[@]}"; do
     fi
 done
 
-# Remove all remaining files in .config (just in case)
+# Remove all remaining files in .config
 print_msg "Cleaning any remaining files in ~/.config..."
 rm -rf "$HOME/.config"/* 2>/dev/null
 
@@ -173,7 +157,7 @@ done
 # Remove all remaining local share
 rm -rf "$HOME/.local/share"/* 2>/dev/null
 
-# Remove local bin
+# Remove local bin and lib
 rm -rf "$HOME/.local/bin"/* 2>/dev/null
 rm -rf "$HOME/.local/lib"/* 2>/dev/null
 rm -rf "$HOME/.local/state"/* 2>/dev/null
@@ -251,25 +235,18 @@ for dir in "${DOT_DIRS[@]}"; do
         print_msg "Removing: ~/$dir"
         rm -rf "$HOME/$dir"
     fi
-fi
+done
 
 # ============================================
 # 6. DELETE CELESTIA SPECIFIC FILES
 # ============================================
 print_msg "Deleting Celestia files..."
 
-# Celestia AppImage
 rm -f "$HOME/.local/bin/celestia.AppImage" 2>/dev/null
 rm -f "$HOME/celestia.AppImage" 2>/dev/null
-
-# Celestia source
 rm -rf "$HOME/Celestia" 2>/dev/null
-
-# Celestia configs
 rm -rf "$HOME/.celestia" 2>/dev/null
 rm -rf "$HOME/.config/celestia" 2>/dev/null
-
-# Celestia desktop entry
 rm -f "$HOME/.local/share/applications/celestia.desktop" 2>/dev/null
 rm -f "$HOME/.local/share/applications/caelestia"* 2>/dev/null
 
@@ -278,25 +255,21 @@ rm -f "$HOME/.local/share/applications/caelestia"* 2>/dev/null
 # ============================================
 print_msg "Deleting system-level files (requires sudo)..."
 
-# Remove user-installed themes
 if [[ -d "/usr/share/themes" ]]; then
     sudo rm -rf /usr/share/themes/hyde* 2>/dev/null
     sudo rm -rf /usr/share/themes/caelestia* 2>/dev/null
 fi
 
-# Remove user-installed icons
 if [[ -d "/usr/share/icons" ]]; then
     sudo rm -rf /usr/share/icons/hyde* 2>/dev/null
     sudo rm -rf /usr/share/icons/caelestia* 2>/dev/null
 fi
 
-# Remove SDDM themes
 if [[ -d "/usr/share/sddm/themes" ]]; then
     sudo rm -rf /usr/share/sddm/themes/hyde* 2>/dev/null
     sudo rm -rf /usr/share/sddm/themes/caelestia* 2>/dev/null
 fi
 
-# Remove desktop entries
 sudo rm -f /usr/share/applications/hyde* 2>/dev/null
 sudo rm -f /usr/share/applications/caelestia* 2>/dev/null
 sudo rm -f /usr/share/applications/celestia* 2>/dev/null
@@ -316,7 +289,6 @@ rm -rf "$HOME/.wallpapers" 2>/dev/null
 # ============================================
 print_msg "Creating minimal clean configs..."
 
-# Minimal .bashrc
 cat > "$HOME/.bashrc" << 'EOF'
 # ~/.bashrc - Minimal
 alias ls='ls --color=auto'
@@ -329,7 +301,6 @@ PS1='\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 export EDITOR=nano
 EOF
 
-# Minimal .profile
 cat > "$HOME/.profile" << 'EOF'
 # ~/.profile
 if [ -n "$BASH_VERSION" ]; then
@@ -339,7 +310,6 @@ if [ -n "$BASH_VERSION" ]; then
 fi
 EOF
 
-# Minimal .config directory (clean)
 mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.local/bin"
 mkdir -p "$HOME/.local/share"
@@ -352,18 +322,14 @@ print_warning "=========================================="
 print_warning "REMOVAL COMPLETE!"
 print_warning "=========================================="
 
-print_msg "Checking remaining configs..."
-
-# Check remaining in .config
 CONFIG_COUNT=$(find "$HOME/.config" -type f 2>/dev/null | wc -l)
 print_msg "Files remaining in ~/.config: $CONFIG_COUNT"
 
-# Check remaining dotfiles
 DOTFILE_COUNT=$(find "$HOME" -maxdepth 1 -name ".*" -type f 2>/dev/null | wc -l)
 print_msg "Dotfiles remaining in ~: $DOTFILE_COUNT"
 
 echo ""
-print_info "If you still see files, run this command:"
+print_info "If you still see files, run:"
 print_info "  find ~/.config -type f -name \"*hypr*\" -o -name \"*caelestia*\" -o -name \"*hyde*\""
 print_info "  find ~ -maxdepth 1 -name \".*\" | grep -E \"hypr|caelestia|hyde\""
 
